@@ -112,11 +112,17 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
 
     // MARK: - override UILabel properties
     override open var text: String? {
-        didSet { updateTextStorage() }
+        didSet {
+            usingAttributedText = false
+            updateTextStorage()
+        }
     }
 
     override open var attributedText: NSAttributedString? {
-        didSet { updateTextStorage() }
+        didSet {
+            usingAttributedText = true
+            updateTextStorage()
+        }
     }
     
     override open var font: UIFont! {
@@ -243,6 +249,7 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
     fileprivate var mentionFilterPredicate: ((String) -> Bool)?
     fileprivate var hashtagFilterPredicate: ((String) -> Bool)?
 
+    fileprivate var usingAttributedText = false
     fileprivate var selectedElement: ElementTuple?
     fileprivate var heightCorrection: CGFloat = 0
     internal lazy var textStorage = NSTextStorage()
@@ -251,7 +258,7 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
     lazy var activeElements = [ActiveType: [ElementTuple]]()
 
     // MARK: - helper functions
-    
+
     fileprivate func setupLabel() {
         textStorage.addLayoutManager(layoutManager)
         layoutManager.addTextContainer(textContainer)
@@ -275,8 +282,7 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
 
         if parseText {
             clearActiveElements()
-            let newString = parseTextAndExtractActiveElements(mutAttrString)
-            mutAttrString.mutableString.setString(newString)
+            parseTextAndExtractActiveElements(mutAttrString)
         }
 
         addLinkAttribute(mutAttrString)
@@ -302,52 +308,50 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
     }
 
     /// add link attribute
-    fileprivate func addLinkAttribute(_ mutAttrString: NSMutableAttributedString) {
+    private func addLinkAttribute(_ mutAttrString: NSMutableAttributedString) {
         var range = NSRange(location: 0, length: 0)
         var attributes = mutAttrString.attributes(at: 0, effectiveRange: &range)
-        
-        attributes[NSFontAttributeName] = font!
-        attributes[NSForegroundColorAttributeName] = textColor
-        mutAttrString.addAttributes(attributes, range: range)
-
-        attributes[NSForegroundColorAttributeName] = mentionColor
+        if !usingAttributedText {
+            attributes[NSFontAttributeName] = font
+            attributes[NSForegroundColorAttributeName] = textColor
+        }
 
         for (type, elements) in activeElements {
-
-            switch type {
-            case .mention: attributes[NSForegroundColorAttributeName] = mentionColor
-            case .hashtag: attributes[NSForegroundColorAttributeName] = hashtagColor
-            case .url: attributes[NSForegroundColorAttributeName] = URLColor
-            case .custom: attributes[NSForegroundColorAttributeName] = customColor[type] ?? defaultCustomColor
-            }
-            
-            if let highlightFont = hightlightFont {
-                attributes[NSFontAttributeName] = highlightFont
-            }
-			
-            if let configureLinkAttribute = configureLinkAttribute {
-                attributes = configureLinkAttribute(type, attributes, false)
-            }
-
             for element in elements {
+                
+                if usingAttributedText {
+                    range = NSRange(location: 0, length: 0)
+                    attributes = mutAttrString.attributes(at: element.range.location, effectiveRange: &range)
+                }
+                
+                switch type {
+                case .mention: attributes[NSForegroundColorAttributeName] = mentionColor
+                case .hashtag: attributes[NSForegroundColorAttributeName] = hashtagColor
+                case .url: attributes[NSForegroundColorAttributeName] = URLColor
+                case .custom: attributes[NSForegroundColorAttributeName] = customColor[type] ?? defaultCustomColor
+                }
+                
+                if let highlightFont = hightlightFont {
+                    attributes[NSFontAttributeName] = highlightFont
+                }
+                
+                if let configureLinkAttribute = configureLinkAttribute {
+                    attributes = configureLinkAttribute(type, attributes, false)
+                }
+                
                 mutAttrString.setAttributes(attributes, range: element.range)
             }
         }
     }
 
     /// use regex check all link ranges
-    fileprivate func parseTextAndExtractActiveElements(_ attrString: NSAttributedString) -> String {
-        var textString = attrString.string
-        var textLength = textString.utf16.count
-        var textRange = NSRange(location: 0, length: textLength)
+    private func parseTextAndExtractActiveElements(_ attrString: NSMutableAttributedString) {
+        let textString = attrString.string
+        let textLength = textString.utf16.count
+        let textRange = NSRange(location: 0, length: textLength)
 
         if enabledTypes.contains(.url) {
-            let tuple = ActiveBuilder.createURLElements(from: textString, range: textRange, maximumLenght: urlMaximumLength)
-            let urlElements = tuple.0
-            let finalText = tuple.1
-            textString = finalText
-            textLength = textString.utf16.count
-            textRange = NSRange(location: 0, length: textLength)
+            let urlElements = ActiveBuilder.createURLElements(from: attrString, range: textRange, maximumLenght: urlMaximumLength)
             activeElements[.url] = urlElements
         }
 
@@ -361,8 +365,6 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
             let hashtagElements = ActiveBuilder.createElements(type: type, from: textString, range: textRange, filterPredicate: filter)
             activeElements[type] = hashtagElements
         }
-
-        return textString
     }
 
 
@@ -388,8 +390,8 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
         guard let selectedElement = selectedElement else {
             return
         }
-        
-        var attributes = textStorage.attributes(at: 0, effectiveRange: nil)
+
+        var attributes = textStorage.attributes(at: selectedElement.range.location, effectiveRange: nil)
         let type = selectedElement.type
 
         if isSelected {
@@ -412,14 +414,6 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
             case .custom: unselectedColor = customColor[selectedElement.type] ?? defaultCustomColor
             }
             attributes[NSForegroundColorAttributeName] = unselectedColor
-        }
-        
-        if let highlightFont = hightlightFont {
-            attributes[NSFontAttributeName] = highlightFont
-        }
-        
-        if let configureLinkAttribute = configureLinkAttribute {
-            attributes = configureLinkAttribute(type, attributes, isSelected)
         }
 
         textStorage.addAttributes(attributes, range: selectedElement.range)
