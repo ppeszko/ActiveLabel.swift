@@ -61,32 +61,32 @@ class AttributedTextTests: XCTestCase {
         var textAttr = label.textStorage.attributes(at: textRange.location, effectiveRange: &actualRange)
         XCTAssertEqual(actualRange.location, textRange.location)
         XCTAssertEqual(actualRange.length, textRange.length)
-        XCTAssertEqual(textAttr[NSFontAttributeName] as! UIFont, label.font!)
-        XCTAssertEqual(textAttr[NSForegroundColorAttributeName] as? UIColor, label.textColor)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.font] as! UIFont, label.font!)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.foregroundColor] as? UIColor, label.textColor)
         
         // Verify that `#hashtags` has the default font and `hashtagColor` as text color
         textRange = nstext.range(of: "#hashtags")
         textAttr = label.textStorage.attributes(at: textRange.location, effectiveRange: &actualRange)
         XCTAssertEqual(actualRange.location, textRange.location)
         XCTAssertEqual(actualRange.length, textRange.length)
-        XCTAssertEqual(textAttr[NSFontAttributeName] as! UIFont, label.font!)
-        XCTAssertEqual(textAttr[NSForegroundColorAttributeName] as? UIColor, label.hashtagColor)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.font] as! UIFont, label.font!)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.foregroundColor] as? UIColor, label.hashtagColor)
         
         // Verify that `user` has the default font and `mentionColor` as text color
         textRange = nstext.range(of: "@user")
         textAttr = label.textStorage.attributes(at: textRange.location, effectiveRange: &actualRange)
         XCTAssertEqual(actualRange.location, textRange.location)
         XCTAssertEqual(actualRange.length, textRange.length)
-        XCTAssertEqual(textAttr[NSFontAttributeName] as! UIFont, label.font!)
-        XCTAssertEqual(textAttr[NSForegroundColorAttributeName] as? UIColor, label.mentionColor)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.font] as! UIFont, label.font!)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.foregroundColor] as? UIColor, label.mentionColor)
         
         // Verify that `#hashtags` has the default font and `hashtagColor` as text color
         textRange = nstext.range(of: "http://hello.com")
         textAttr = label.textStorage.attributes(at: textRange.location, effectiveRange: &actualRange)
         XCTAssertEqual(actualRange.location, textRange.location)
         XCTAssertEqual(actualRange.length, textRange.length)
-        XCTAssertEqual(textAttr[NSFontAttributeName] as! UIFont, label.font!)
-        XCTAssertEqual(textAttr[NSForegroundColorAttributeName] as? UIColor, label.URLColor)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.font] as! UIFont, label.font!)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.foregroundColor] as? UIColor, label.URLColor)
     }
     
     func testWithAttributedString() {
@@ -103,17 +103,17 @@ class AttributedTextTests: XCTestCase {
         let color1 = UIColor.brown
         let underline1 = NSUnderlineStyle.styleDouble.rawValue
         let t1 = NSAttributedString(string: "simple text ", attributes: [
-            NSFontAttributeName : font1,
-            NSForegroundColorAttributeName : color1,
-            NSUnderlineStyleAttributeName : underline1
+            NSAttributedStringKey.font : font1,
+            NSAttributedStringKey.foregroundColor : color1,
+            NSAttributedStringKey.underlineStyle : underline1
         ])
         let font2 = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
         let color2 = UIColor.black
         let underline2 = NSUnderlineStyle.patternDashDot.rawValue
         let t2 = NSAttributedString(string: "with #hashtags, @user http://hello.com", attributes: [
-            NSFontAttributeName : font2,
-            NSForegroundColorAttributeName : color2,
-            NSUnderlineStyleAttributeName : underline2
+            NSAttributedStringKey.font : font2,
+            NSAttributedStringKey.foregroundColor : color2,
+            NSAttributedStringKey.underlineStyle : underline2
         ])
         let attributedText = NSMutableAttributedString()
         attributedText.append(t1)
@@ -127,36 +127,36 @@ class AttributedTextTests: XCTestCase {
         var textAttr = label.textStorage.attributes(at: textRange.location, effectiveRange: &actualRange)
         XCTAssertEqual(actualRange.location, textRange.location)
         XCTAssertEqual(actualRange.length, textRange.length)
-        XCTAssertEqual(textAttr[NSFontAttributeName] as! UIFont, font1)
-        XCTAssertEqual(textAttr[NSForegroundColorAttributeName] as? UIColor, color1)
-        XCTAssertEqual(textAttr[NSUnderlineStyleAttributeName] as? Int, underline1)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.font] as! UIFont, font1)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.foregroundColor] as? UIColor, color1)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.underlineStyle] as? Int, underline1)
         
         // Verify that `#hashtags` has the original font and underline, but `hashtagColor` as color
         textRange = nstext.range(of: "#hashtags")
         textAttr = label.textStorage.attributes(at: textRange.location, effectiveRange: &actualRange)
         XCTAssertEqual(actualRange.location, textRange.location)
         XCTAssertEqual(actualRange.length, textRange.length)
-        XCTAssertEqual(textAttr[NSFontAttributeName] as! UIFont, font2)
-        XCTAssertEqual(textAttr[NSForegroundColorAttributeName] as? UIColor, label.hashtagColor)
-        XCTAssertEqual(textAttr[NSUnderlineStyleAttributeName] as? Int, underline2)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.font] as! UIFont, font2)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.foregroundColor] as? UIColor, label.hashtagColor)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.underlineStyle] as? Int, underline2)
         
         // Verify that `user` has the default font and `mentionColor` as text color
         textRange = nstext.range(of: "@user")
         textAttr = label.textStorage.attributes(at: textRange.location, effectiveRange: &actualRange)
         XCTAssertEqual(actualRange.location, textRange.location)
         XCTAssertEqual(actualRange.length, textRange.length)
-        XCTAssertEqual(textAttr[NSFontAttributeName] as! UIFont, font2)
-        XCTAssertEqual(textAttr[NSForegroundColorAttributeName] as? UIColor, label.mentionColor)
-        XCTAssertEqual(textAttr[NSUnderlineStyleAttributeName] as? Int, underline2)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.font] as! UIFont, font2)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.foregroundColor] as? UIColor, label.mentionColor)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.underlineStyle] as? Int, underline2)
         
         // Verify that `#hashtags` has the default font and `hashtagColor` as text color
         textRange = nstext.range(of: "http://hello.com")
         textAttr = label.textStorage.attributes(at: textRange.location, effectiveRange: &actualRange)
         XCTAssertEqual(actualRange.location, textRange.location)
         XCTAssertEqual(actualRange.length, textRange.length)
-        XCTAssertEqual(textAttr[NSFontAttributeName] as! UIFont, font2)
-        XCTAssertEqual(textAttr[NSForegroundColorAttributeName] as? UIColor, label.URLColor)
-        XCTAssertEqual(textAttr[NSUnderlineStyleAttributeName] as? Int, underline2)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.font] as! UIFont, font2)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.foregroundColor] as? UIColor, label.URLColor)
+        XCTAssertEqual(textAttr[NSAttributedStringKey.underlineStyle] as? Int, underline2)
     }
 
 }
