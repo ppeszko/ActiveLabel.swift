@@ -40,7 +40,7 @@ struct ActiveBuilder {
                 continue
             }
 
-            let trimmedWord = word.trim(to: maxLength)
+            let trimmedWord = word.trim(to: maxLenght)
             
             let currentRange = (attrString.string as NSString).range(of: word)
             if currentRange.location != NSNotFound {
